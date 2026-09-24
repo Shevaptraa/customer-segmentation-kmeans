@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Customer Intelligence Dashboard</title>
+
+    <style>
+        :root {
+            --bg: #f4f7fb;
+            --surface: #ffffff;
+            --surface-soft: #f8fafc;
+            --navy: #101828;
+            --navy-2: #182230;
+            --text: #172033;
+            --muted: #667085;
+            --line: #e5e9f0;
+            --blue: #2563eb;
+            --blue-soft: #eff6ff;
+            --green: #12b76a;
+            --orange: #f79009;
+            --purple: #7f56d9;
+            --pink: #ec4899;
+            --yellow: #eab308;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        /* =========================
+           LAYOUT
+        ========================= */
+
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* =========================
+           SIDEBAR
+        ========================= */
+
+        .sidebar {
+            width: 245px;
+            min-height: 100vh;
+            background: var(--navy);
+            color: white;
+            padding: 28px 18px;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            z-index: 20;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 0 10px;
+            margin-bottom: 42px;
+        }
+
+        .logo-mark {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: #2563eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        .logo-text strong {
+            display: block;
+            font-size: 14px;
+            letter-spacing: -0.2px;
+        }
+
+        .logo-text span {
+            display: block;
+            font-size: 10px;
+            color: #98a2b3;
+            margin-top: 2px;
+        }
+
+        .menu-title {
+            padding: 0 11px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #667085;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .menu {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .menu a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 12px;
+            border-radius: 9px;
+            color: #98a2b3;
+            font-size: 13px;
+            font-weight: 600;
+            transition: .2s;
+        }
+
+        .menu a:hover,
+        .menu a.active {
+            background: #1d2939;
+            color: white;
+        }
+
+        .menu-icon {
+            width: 17px;
+            text-align: center;
+            opacity: .9;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            padding: 16px 10px 4px;
+        }
+
+        .model-status {
+            border: 1px solid #273548;
+            background: #151f2e;
+            border-radius: 12px;
+            padding: 14px;
+        }
+
+        .status-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: #98a2b3;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #12b76a;
+        }
+
+        .status-value {
+            margin-top: 7px;
+            font-size: 13px;
+            font-weight: 700;
+            color: white;
+        }
+
+        /* =========================
+           MAIN
+        ========================= */
+
+        .main {
+            margin-left: 245px;
+            width: calc(100% - 245px);
+        }
+
+        .topbar {
+            height: 70px;
+            border-bottom: 1px solid var(--line);
+            background: rgba(255,255,255,.9);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 38px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .breadcrumb {
+            color: #98a2b3;
+            font-size: 12px;
+        }
+
+        .breadcrumb strong {
+            color: #475467;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 11px;
+            border-radius: 20px;
+            background: #ecfdf3;
+            color: #027a48;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        /* =========================
+           CONTENT
+        ========================= */
+
+        .content {
+            max-width: 1420px;
+            margin: auto;
+            padding: 38px 40px 70px;
+        }
+
+        .page-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 30px;
+            margin-bottom: 28px;
+        }
+
+        .page-heading .eyebrow {
+            color: var(--blue);
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .page-heading h1 {
+            font-size: 31px;
+            letter-spacing: -1px;
+            line-height: 1.15;
+        }
+
+        .page-heading p {
+            color: var(--muted);
+            font-size: 13px;
+            margin-top: 7px;
+        }
+
+        .date-label {
+            color: #98a2b3;
+            font-size: 11px;
+        }
+
+        /* =========================
+           KPI
+        ========================= */
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 24px;
+        }
+
+        .kpi {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 19px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi::after {
+            content: "";
+            position: absolute;
+            right: -18px;
+            bottom: -24px;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: var(--blue-soft);
+        }
+
+        .kpi-label {
+            color: #667085;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .kpi-value {
+            font-size: 25px;
+            font-weight: 800;
+            letter-spacing: -.8px;
+            margin-top: 8px;
+        }
+
+        .kpi-note {
+            font-size: 10px;
+            color: #98a2b3;
+            margin-top: 4px;
+        }
+
+        /* =========================
+           PREDICTION PANEL
+        ========================= */
+
+        .prediction-layout {
+            display: grid;
+            grid-template-columns: 1.05fr .95fr;
+            gap: 18px;
+            margin-bottom: 48px;
+        }
+
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 22px 24px 18px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .panel-header h2 {
+            font-size: 17px;
+            letter-spacing: -.3px;
+        }
+
+        .panel-header p {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .panel-body {
+            padding: 24px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            color: #475467;
+            margin-bottom: 7px;
+        }
+
+        .form-group input {
+            width: 100%;
+            height: 45px;
+            border: 1px solid #d0d5dd;
+            border-radius: 9px;
+            padding: 0 13px;
+            outline: none;
+            background: #fcfcfd;
+            font-size: 13px;
+            color: var(--text);
+            transition: .2s;
+        }
+
+        .form-group input:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px #eff6ff;
+            background: white;
+        }
+
+        .helper {
+            font-size: 10px;
+            color: #98a2b3;
+            margin-top: 5px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            height: 45px;
+            margin-top: 18px;
+            border: none;
+            border-radius: 9px;
+            background: var(--navy);
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: .2s;
+        }
+
+        .submit-btn:hover {
+            background: #253247;
+            transform: translateY(-1px);
+        }
+
+        /* =========================
+           RESULT
+        ========================= */
+
+        .result-panel {
+            background: var(--navy);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-panel::before {
+            content: "";
+            position: absolute;
+            width: 230px;
+            height: 230px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,.07);
+            right: -75px;
+            top: -75px;
+        }
+
+        .result-panel::after {
+            content: "";
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,.05);
+            right: -40px;
+            top: -40px;
+        }
+
+        .result-content {
+            position: relative;
+            z-index: 2;
+            padding: 25px;
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .result-small {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #98a2b3;
+            font-weight: 700;
+        }
+
+        .result-cluster {
+            font-size: 52px;
+            line-height: 1;
+            font-weight: 900;
+            letter-spacing: -2px;
+            margin: 9px 0;
+        }
+
+        .result-name {
+            color: #d0d5dd;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .result-description {
+            color: #98a2b3;
+            font-size: 12px;
+            line-height: 1.6;
+            margin-top: 13px;
+            max-width: 400px;
+        }
+
+        .result-line {
+            width: 45px;
+            height: 3px;
+            border-radius: 5px;
+            background: #3b82f6;
+            margin-top: 19px;
+        }
+
+        .empty-result {
+            color: #98a2b3;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        /* =========================
+           ANALYTICS
+        ========================= */
+
+        .section-title {
+            margin-bottom: 19px;
+        }
+
+        .section-title .eyebrow {
+            color: var(--blue);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .section-title h2 {
+            font-size: 23px;
+            margin-top: 5px;
+            letter-spacing: -.5px;
+        }
+
+        .section-title p {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .cluster-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .cluster-card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 15px;
+            padding: 21px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cluster-card:last-child {
+            grid-column: span 2;
+        }
+
+        .cluster-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 17px;
+        }
+
+        .cluster-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 9px;
+            border-radius: 7px;
+            background: #f2f4f7;
+            color: #475467;
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .cluster-tag::before {
+            content: "";
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--blue);
+        }
+
+        .cluster-percent {
+            color: #667085;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .cluster-card h3 {
+            font-size: 18px;
+            letter-spacing: -.3px;
+            margin-bottom: 5px;
+        }
+
+        .cluster-card > p {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.55;
+            max-width: 600px;
+        }
+
+        .metric-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            margin-top: 18px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .metric {
+            padding: 13px;
+            background: #fafbfc;
+            border-right: 1px solid var(--line);
+        }
+
+        .metric:last-child {
+            border-right: none;
+        }
+
+        .metric span {
+            display: block;
+            color: #98a2b3;
+            font-size: 9px;
+            margin-bottom: 4px;
+        }
+
+        .metric strong {
+            font-size: 13px;
+        }
+
+        .action {
+            margin-top: 13px;
+            padding: 11px 13px;
+            border-left: 3px solid var(--blue);
+            background: var(--blue-soft);
+            border-radius: 5px;
+        }
+
+        .action strong {
+            display: block;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: .7px;
+            color: var(--blue);
+            margin-bottom: 3px;
+        }
+
+        .action span {
+            color: #475467;
+            font-size: 11px;
+        }
+
+        /* =========================
+           MODEL
+        ========================= */
+
+        .model-panel {
+            margin-top: 45px;
+        }
+
+        .model-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .model-item {
+            padding: 17px;
+            background: white;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+        }
+
+        .model-item span {
+            color: #98a2b3;
+            font-size: 10px;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .model-item strong {
+            font-size: 14px;
+        }
+
+        /* =========================
+           FOOTER
+        ========================= */
+
+        footer {
+            margin-top: 55px;
+            padding: 20px 0;
+            border-top: 1px solid var(--line);
+            color: #98a2b3;
+            font-size: 10px;
+            text-align: center;
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================= */
+
+        @media (max-width: 1050px) {
+            .sidebar {
+                width: 210px;
+            }
+
+            .main {
+                margin-left: 210px;
+                width: calc(100% - 210px);
+            }
+
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .prediction-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .sidebar {
+                position: static;
+                width: 100%;
+                min-height: auto;
+            }
+
+            .app {
+                display: block;
+            }
+
+            .main {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .sidebar-bottom {
+                display: none;
+            }
+
+            .menu {
+                flex-direction: row;
+                overflow-x: auto;
+            }
+
+            .menu-title {
+                display: none;
+            }
+
+            .content {
+                padding: 25px 18px 50px;
+            }
+
+            .topbar {
+                padding: 0 18px;
+            }
+
+            .cluster-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cluster-card:last-child {
+                grid-column: span 1;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .model-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .page-heading {
+                display: block;
+            }
+
+            .date-label {
+                display: none;
+            }
+
+            .metric-row {
+                grid-template-columns: 1fr;
+            }
+
+            .metric {
+                border-right: none;
+                border-bottom: 1px solid var(--line);
+            }
+
+            .metric:last-child {
+                border-bottom: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <div class="logo">
+            <div class="logo-mark">CS</div>
+
+            <div class="logo-text">
+                <strong>Customer Intelligence</strong>
+                <span>Machine Learning Dashboard</span>
+            </div>
+        </div>
+
+        <div class="menu-title">
+            Workspace
+        </div>
+
+        <div class="menu">
+
+            <a href="#overview" class="active">
+                <span class="menu-icon">◈</span>
+                Overview
+            </a>
+
+            <a href="#prediction">
+                <span class="menu-icon">⌁</span>
+                Customer Prediction
+            </a>
+
+            <a href="#analytics">
+                <span class="menu-icon">▦</span>
+                Segment Analytics
+            </a>
+
+            <a href="#model">
+                <span class="menu-icon">◉</span>
+                Model Information
+            </a>
+
+        </div>
+
+        <div class="sidebar-bottom">
+
+            <div class="model-status">
+
+                <div class="status-row">
+                    <span class="status-dot"></span>
+                    Model Status
+                </div>
+
+                <div class="status-value">
+                    K-Means · Active
+                </div>
+
+            </div>
+
+        </div>
+
+    </aside>
+
+
+    <!-- MAIN -->
+    <main class="main">
+
+        <!-- TOPBAR -->
+        <header class="topbar">
+
+            <div class="breadcrumb">
+                Analytics / <strong>Customer Segmentation</strong>
+            </div>
+
+            <div class="topbar-right">
+
+                <div class="status-pill">
+                    <span class="status-dot"></span>
+                    Model Ready
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <div class="content">
+
+            <!-- PAGE HEADING -->
+            <section id="overview">
+
+                <div class="page-heading">
+
+                    <div>
+                        <div class="eyebrow">
+                            Customer Analytics
+                        </div>
+
+                        <h1>
+                            Segmentation Overview
+                        </h1>
+
+                        <p>
+                            Memahami karakteristik pelanggan berdasarkan
+                            pendapatan dan perilaku belanja.
+                        </p>
+                    </div>
+
+                    <div class="date-label">
+                        K-Means Clustering · 5 Segments
+                    </div>
+
+                </div>
+
+
+                <!-- KPI -->
+                <div class="kpi-grid">
+
+                    <div class="kpi">
+                        <div class="kpi-label">
+                            Total Customers
+                        </div>
+
+                        <div class="kpi-value">
+                            200
+                        </div>
+
+                        <div class="kpi-note">
+                            Dataset pelanggan
+                        </div>
+                    </div>
+
+
+                    <div class="kpi">
+                        <div class="kpi-label">
+                            Customer Segments
+                        </div>
+
+                        <div class="kpi-value">
+                            5
+                        </div>
+
+                        <div class="kpi-note">
+                            Hasil K-Means
+                        </div>
+                    </div>
+
+
+                    <div class="kpi">
+                        <div class="kpi-label">
+                            Silhouette Score
+                        </div>
+
+                        <div class="kpi-value">
+                            0.555
+                        </div>
+
+                        <div class="kpi-note">
+                            Evaluasi clustering
+                        </div>
+                    </div>
+
+
+                    <div class="kpi">
+                        <div class="kpi-label">
+                            Algorithm
+                        </div>
+
+                        <div class="kpi-value">
+                            K-Means
+                        </div>
+
+                        <div class="kpi-note">
+                            Unsupervised Learning
+                        </div>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- PREDICTION -->
+            <section id="prediction">
+
+                <div class="prediction-layout">
+
+                    <!-- FORM -->
+                    <div class="panel">
+
+                        <div class="panel-header">
+
+                            <h2>
+                                Customer Prediction
+                            </h2>
+
+                            <p>
+                                Masukkan karakteristik customer baru untuk
+                                menentukan segmentasinya.
+                            </p>
+
+                        </div>
+
+                        <div class="panel-body">
+
+                            <form method="POST">
+
+                                <div class="form-grid">
+
+                                    <div class="form-group">
+
+                                        <label for="income">
+                                            Annual Income (k$)
+                                        </label>
+
+                                        <input
+                                            type="number"
+                                            id="income"
+                                            name="income"
+                                            min="0"
+                                            step="0.01"
+                                            placeholder="Contoh: 86"
+                                            required
+                                        >
+
+                                        <div class="helper">
+                                            Pendapatan tahunan dalam ribuan dolar.
+                                        </div>
+
+                                    </div>
+
+
+                                    <div class="form-group">
+
+                                        <label for="spending">
+                                            Spending Score (1-100)
+                                        </label>
+
+                                        <input
+                                            type="number"
+                                            id="spending"
+                                            name="spending"
+                                            min="1"
+                                            max="100"
+                                            step="0.01"
+                                            placeholder="Contoh: 82"
+                                            required
+                                        >
+
+                                        <div class="helper">
+                                            Skor perilaku belanja pelanggan.
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+                                <button type="submit" class="submit-btn">
+                                    Run Customer Analysis →
+                                </button>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- RESULT -->
+                    <div class="panel result-panel">
+
+                        <div class="result-content">
+
+                            {% if result %}
+
+                                <div class="result-small">
+                                    Prediction Result
+                                </div>
+
+                                <div class="result-cluster">
+                                    #{{ result.cluster }}
+                                </div>
+
+                                <div class="result-name">
+                                    {{ result.name }}
+                                </div>
+
+                                <div class="result-description">
+                                    {{ result.description }}
+                                </div>
+
+                                <div class="result-line"></div>
+
+                            {% else %}
+
+                                <div class="result-small">
+                                    Prediction Result
+                                </div>
+
+                                <div class="result-cluster">
+                                    —
+                                </div>
+
+                                <div class="result-name">
+                                    Waiting for customer input
+                                </div>
+
+                                <div class="result-description">
+                                    Masukkan Annual Income dan Spending Score
+                                    di panel sebelah kiri untuk menjalankan
+                                    prediksi segmentasi.
+                                </div>
+
+                                <div class="result-line"></div>
+
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ANALYTICS -->
+            <section id="analytics">
+
+                <div class="section-title">
+
+                    <div class="eyebrow">
+                        Segment Analytics
+                    </div>
+
+                    <h2>
+                        Customer Profile & Segmentation
+                    </h2>
+
+                    <p>
+                        Profil setiap cluster berdasarkan rata-rata
+                        karakteristik pelanggan dalam dataset.
+                    </p>
+
+                </div>
+
+
+                <div class="cluster-grid">
+
+                    {% for cluster in clusters %}
+
+                    <div class="cluster-card">
+
+                        <div class="cluster-top">
+
+                            <div class="cluster-tag">
+                                Cluster #{{ cluster.id }}
+                            </div>
+
+                            <div class="cluster-percent">
+                                {{ cluster.percentage }}% of customers
+                            </div>
+
+                        </div>
+
+
+                        <h3>
+                            {{ cluster.name }}
+                        </h3>
+
+                        <p>
+                            {{ cluster.description }}
+                        </p>
+
+
+                        <div class="metric-row">
+
+                            <div class="metric">
+
+                                <span>
+                                    Average Age
+                                </span>
+
+                                <strong>
+                                    {{ cluster.age }} years
+                                </strong>
+
+                            </div>
+
+
+                            <div class="metric">
+
+                                <span>
+                                    Annual Income
+                                </span>
+
+                                <strong>
+                                    {{ cluster.income }} k$
+                                </strong>
+
+                            </div>
+
+
+                            <div class="metric">
+
+                                <span>
+                                    Spending Score
+                                </span>
+
+                                <strong>
+                                    {{ cluster.spending }}/100
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="action">
+
+                            <strong>
+                                Business Insight
+                            </strong>
+
+                            <span>
+                                {{ cluster.action }}
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </section>
+
+
+            <!-- MODEL -->
+            <section class="model-panel" id="model">
+
+                <div class="section-title">
+
+                    <div class="eyebrow">
+                        Machine Learning
+                    </div>
+
+                    <h2>
+                        Model Information
+                    </h2>
+
+                    <p>
+                        Konfigurasi dan evaluasi model yang digunakan
+                        dalam proses segmentasi.
+                    </p>
+
+                </div>
+
+
+                <div class="model-grid">
+
+                    <div class="model-item">
+
+                        <span>
+                            Algorithm
+                        </span>
+
+                        <strong>
+                            K-Means Clustering
+                        </strong>
+
+                    </div>
+
+
+                    <div class="model-item">
+
+                        <span>
+                            Number of Clusters
+                        </span>
+
+                        <strong>
+                            5
+                        </strong>
+
+                    </div>
+
+
+                    <div class="model-item">
+
+                        <span>
+                            Evaluation
+                        </span>
+
+                        <strong>
+                            Silhouette 0.555
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <footer>
+                Customer Intelligence Dashboard · K-Means Machine Learning Project
+            </footer>
+
+        </div>
+
+    </main>
+
+</div>
+
+</body>
+</html>
