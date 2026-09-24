@@ -1,15 +1,20 @@
 from flask import Flask, request, render_template
 import joblib
 import pandas as pd
+import os
 
 app = Flask(__name__)
 
+# Menentukan lokasi folder project
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # Load model dan scaler
-model = joblib.load("kmeans_model.pkl")
-scaler = joblib.load("scaler.pkl")
+model = joblib.load(os.path.join(BASE_DIR, "kmeans_model.pkl"))
+scaler = joblib.load(os.path.join(BASE_DIR, "scaler.pkl"))
 
 # Load dataset untuk analitik cluster
-df = pd.read_csv("Mall_Customers.csv")
+df = pd.read_csv(os.path.join(BASE_DIR, "Mall_Customers.csv"))
+
 
 # Profil masing-masing cluster
 cluster_info = {
@@ -45,28 +50,50 @@ cluster_info = {
     }
 }
 
+
 # Hitung jumlah pelanggan setiap cluster
-cluster_counts = df["Cluster"].value_counts().sort_index() if "Cluster" in df.columns else None
+cluster_counts = (
+    df["Cluster"].value_counts().sort_index()
+    if "Cluster" in df.columns
+    else None
+)
+
 
 # Kalau dataset belum memiliki kolom Cluster,
 # prediksi ulang menggunakan model yang sudah dilatih
 if cluster_counts is None:
-    X_all = df[["Annual Income (k$)", "Spending Score (1-100)"]]
+    X_all = df[
+        ["Annual Income (k$)", "Spending Score (1-100)"]
+    ]
+
     X_all_scaled = scaler.transform(X_all)
+
     df["Cluster"] = model.predict(X_all_scaled)
+
     cluster_counts = df["Cluster"].value_counts().sort_index()
+
 
 # Profil cluster
 cluster_profile = df.groupby("Cluster")[
-    ["Age", "Annual Income (k$)", "Spending Score (1-100)"]
+    [
+        "Age",
+        "Annual Income (k$)",
+        "Spending Score (1-100)"
+    ]
 ].mean().round(2)
+
 
 # Data untuk halaman analitik
 cluster_overview = []
 
 for cluster_id in range(5):
+
     count = int(cluster_counts.get(cluster_id, 0))
-    percentage = round((count / len(df)) * 100, 1)
+
+    percentage = round(
+        (count / len(df)) * 100,
+        1
+    )
 
     cluster_overview.append({
         "id": cluster_id,
@@ -77,11 +104,18 @@ for cluster_id in range(5):
         "count": count,
         "percentage": percentage,
         "age": cluster_profile.loc[cluster_id, "Age"],
-        "income": cluster_profile.loc[cluster_id, "Annual Income (k$)"],
-        "spending": cluster_profile.loc[cluster_id, "Spending Score (1-100)"]
+        "income": cluster_profile.loc[
+            cluster_id,
+            "Annual Income (k$)"
+        ],
+        "spending": cluster_profile.loc[
+            cluster_id,
+            "Spending Score (1-100)"
+        ]
     })
 
 
+# Halaman utama
 @app.route("/", methods=["GET", "POST"])
 def home():
 
@@ -89,18 +123,32 @@ def home():
 
     if request.method == "POST":
 
-        income = float(request.form["income"])
-        spending = float(request.form["spending"])
-
-        data = pd.DataFrame(
-            [[income, spending]],
-            columns=["Annual Income (k$)", "Spending Score (1-100)"]
+        income = float(
+            request.form["income"]
         )
 
+        spending = float(
+            request.form["spending"]
+        )
+
+        # Data pelanggan baru
+        data = pd.DataFrame(
+            [[income, spending]],
+            columns=[
+                "Annual Income (k$)",
+                "Spending Score (1-100)"
+            ]
+        )
+
+        # Standardisasi data
         data_scaled = scaler.transform(data)
 
-        cluster = int(model.predict(data_scaled)[0])
+        # Prediksi cluster
+        cluster = int(
+            model.predict(data_scaled)[0]
+        )
 
+        # Hasil prediksi
         result = {
             "cluster": cluster,
             "name": cluster_info[cluster]["name"],
@@ -115,5 +163,6 @@ def home():
     )
 
 
+# Menjalankan aplikasi
 if __name__ == "__main__":
     app.run(debug=True)
